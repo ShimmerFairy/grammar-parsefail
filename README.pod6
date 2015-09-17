@@ -1,0 +1,117 @@
+=begin pod
+
+=TITLE Grammar::Parsefail
+
+=AUTHOR Faye (ShimmerFairy)
+
+=begin SYNOPSIS
+
+Offers facilities to give usable errors out of parsing, pointing to the problem
+in the text being parsed, instead of the point in the program where you threw
+the error.
+
+=begin code :allow<B>
+    grammar ParenParser B<does Grammar::Parsefail> {
+        token TOP {
+            <expr>+
+
+            [')' {B«$¢.sorry(X::Grammar::ExtraParen, HINT-MATCH => $<expr>[*-1])»}]*
+
+            [$ || B«<.typed_panic(X::Grammar::EarlyEOF)>»]
+            B«<.express_concerns>»
+        }
+
+        token expr {
+            '('
+            [<-[()\\]> | <expr> | \\ [\(|\)] B«<.worry("Escaped paren found, but ignored")>»]+
+            ')'
+        }
+    }
+=end code
+
+This module gives a role to be applied to grammars which lets you give users an
+infinitely more helpful error message when they've given files (or other kinds
+of text) to your P6 program for parsing.
+
+=end SYNOPSIS
+
+=head1 Basics
+
+The module provides a role for doing error reporting within the grammar, and a
+base exception type to inherit from for your own grammar error types.
+
+=head2 Error Levels
+
+The Parsefail role provides three different levels of error reporting, depending
+on the severity of the problem encountered. These levels are the same as used in
+rakudo's parser. From least to most severe:
+
+=head3 Worry
+
+A X<worry> is basically just a warning; your grammar has encountered something
+that works just fine in whatever you're parsing, but it could easily be
+problematic for some users who were expecting different behavior. An example
+from Perl 6 is a leading zero on numbers:
+
+    =begin output
+    $ K<perl6 -e 'my $a = 042'>
+    Potential difficulties:
+        Leading 0 does not indicate octal in Perl 6.
+        Please use 0o42 if you mean that.
+        at -e:1
+        ------> my $a = 042⏏<EOL>
+    =end output
+
+Perl 6 doesn't interpret a leading zero as indicating an octal number, it's just
+a decimal number with a leading zero. However, since a lot of people would
+expect a leading zero to mean octal, P6 emits a worry that you're not getting
+what you expected.
+
+=head3 Sorry
+
+A X<sorry> is a fatal problem in parsing, but doesn't keep from being able to
+parse a bit more. A sorry allows you to continue parsing the text to find more
+problems in the text being parsed.
+
+For example, if you're parsing a language that has reserved keywords which
+variables can't use as a name (e.g. C++), and you encounter a declaration of a
+variable with a reserved keyword, you can use a sorry. The use of a reserved
+keyword is a parsing-time error, but it doesn't make the file impossible to
+parse (since the text did provide a legal variable name, just one that's
+reserved).
+
+=head3 Panic
+
+A X<panic> is like a sorry, only it stops parsing immediately. This is when the
+problem you found leaves you unable to figure out how to parse things going
+forward.
+
+In the previous section, an example of sorry usage was given about declaring
+variables with a reserved names. An example of a panic would be code later on
+that tries to I<use> the bad variable; since the reserved keyword changes
+parsing behavior, an unexpected reserved keyword means you don't know what to
+expect anymore.
+
+Take this snippet of bad C++ as an example, assuming a hypothetical C++ parser:
+
+=begin code
+    int main() {
+        std::vector<int> if;  // issue a sorry for trying to declare an
+                              // 'if' variable
+
+        if = other_vector;    // a panic goes here, since there's no telling what's
+                              // going on with this "if" (did you mean a conditional
+                              // and forget a variable on the left of the =, or
+                              // did you mean to assign to a badly-named variable?)
+
+        return 0;
+    }
+=end code
+
+=head2 How to Use
+
+=head2 How to Make Your Own Exceptions
+
+=COPYRIGHT Copyright © 2015 Faye, under the Artistic License 2.0
+
+=end pod

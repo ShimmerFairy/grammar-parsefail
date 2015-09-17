@@ -1,0 +1,11 @@
+{
+    "perl"        : "v6.0.0",
+    "name"        : "Grammar::Parsefail",
+    "version"     : "v0.1",
+    "description" : "Syntax error reporting for grammars",
+    "authors"     : [ "Faye" ],
+    "provides"    : {
+        "Grammar::Parsefail" : "lib/GError.pm6",
+        "Grammar::Parsefail::Exceptions" : "lib/GEx.pm6"
+    }
+}
