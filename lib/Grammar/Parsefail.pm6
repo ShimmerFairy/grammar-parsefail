@@ -1,8 +1,8 @@
 # GrammarError.pm6 --- role for handling errors in grammar parsing
 
-use v6;
-
 unit module Grammar::Parsefail;
+
+use v6;
 
 use Grammar::Parsefail::Exceptions;
 

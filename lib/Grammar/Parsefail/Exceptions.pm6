@@ -1,8 +1,12 @@
 # GEx.pm6 --- predefined grammar exceptions.
 
-use v6;
+# XXX using this 'unit module' puts all the classes under the name below, so
+# e.g. C<ExPointer> becomes C<Grammar::Parsefail::Exceptions::ExPointer>, which
+# isn't desired.
 
-unit module Grammar::Parsefail::Exceptions;
+#unit module Grammar::Parsefail::Exceptions;
+
+use v6;
 
 class X::Grammar::Epitaph is Exception {
     has $.panic;

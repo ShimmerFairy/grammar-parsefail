@@ -5,7 +5,7 @@
     "description" : "Syntax error reporting for grammars",
     "authors"     : [ "Faye" ],
     "provides"    : {
-        "Grammar::Parsefail" : "lib/GError.pm6",
-        "Grammar::Parsefail::Exceptions" : "lib/GEx.pm6"
+        "Grammar::Parsefail" : "lib/Grammar/Parsefail.pm6",
+        "Grammar::Parsefail::Exceptions" : "lib/Grammar/Parsefail/Exceptions.pm6"
     }
 }
