@@ -53,20 +53,20 @@ class X::Grammar::Epitaph is Exception {
         } elsif +@!sorrows {
             $gist ~= "\nThe problems above prevented the parser from producing something useful (however it was able to parse everything). Fixing them will allow useful output from the parser.";
         } elsif +@!worries {
-            $gist ~= "\nThe potential difficulties above may cause unexpected results, since they don't prevent the parser from completing.\n";
-            $gist ~= "Fix or suppress the issues as needed to avoid any doubt in the results of parsing.\n";
+            $gist ~= "\nThe potential difficulties above may cause unexpected results, since they don't prevent the parser from completing.";
+            $gist ~= "\nFix or suppress the issues as needed to avoid any doubt in the results of parsing.";
         } else {
             $gist ~= "\nSomehow threw an Epitaph without anything to actually throw. This likely indicates a deeper problem."
         }
 
-        $gist
+        $gist.chomp
     }
 }
 
 class ExPointer {
-    has $!file;
-    has $!line;
-    has $!col;
+    has $.file is rw;
+    has $.line is rw;
+    has $.col is rw;
 
     method gist(ExPointer:D:) { "$!file:$!line,$!col" }
 }
@@ -83,6 +83,8 @@ class X::Grammar is Exception {
     has $.hint-afterpoint;
 
     has ExPointer $.hint-point;
+
+    method message { "Unspecified grammar error" }
 
     method gist(X::Grammar:D: :$singular = True) {
         my ($redbg, $red, $green, $yellow, $reset, $eject, $hintat) = !$*DISTRO.is-win

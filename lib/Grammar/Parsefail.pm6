@@ -12,7 +12,7 @@ role Grammar::Parsefail {
     has @!WORRIES;
     has @!SORROWS;
 
-    has $!SORRY_LIMIT;
+    has $!SORRY_LIMIT = 10;
     has $!FILENAME;
 
     method set_filename(Str(Stringy:D) $fn) { $!FILENAME = $fn }
@@ -24,7 +24,7 @@ role Grammar::Parsefail {
     # like HLL::Compiler.lineof, but gives a column too
     method !linecol($text, $at) {
         # fill the nl-list if it's not yet
-        without @!nl-list {
+        unless @!nl-list {
             for $text.lines {
                 @!nl-list.push($_.chars);
                 @!nl-list[*-1]++ if +@!nl-list - 1; # count newlines on the next line (so skip for first line)
@@ -38,7 +38,7 @@ role Grammar::Parsefail {
         }
 
         # now to find the right line number
-        my $line-number = @!nl-list.last-index(* < $at) + 1; # +1 for zero-index to line numbers
+        my $line-number = @!nl-list.last-index(* > $at) + 1; # +1 for zero-index to line numbers
 
         # and now the column
         my $col-number = @!nl-list[$line-number - 1] - $at - 1;
@@ -56,7 +56,7 @@ role Grammar::Parsefail {
         %opts<goodpart> = $fled-line.substr(0, $linecol[1]);
         %opts<badpart>  = $fled-line.substr($linecol[1]);
 
-        %opts<err-flc> = ExPointer.new(file => $!FILENAME,
+        %opts<err-point> = ExPointer.new(file => $!FILENAME // "<unspecified file>",
                                        line => $linecol[0],
                                        col  => $linecol[1]);
 
@@ -70,7 +70,7 @@ role Grammar::Parsefail {
             %opts<hint-beforepoint> = $hint-line.substr(0, $hintlc[1]);
             %opts<hint-afterpoint>  = $hint-line.substr(0, $hintlc[1]);
 
-            %opts<hint-flc> = ExPointer.new(file => $!FILENAME,
+            %opts<hint-point> = ExPointer.new(file => $!FILENAME // "<unspecified file>",
                                             line => $hintlc[0],
                                             col  => $hintlc[1]);
 
@@ -96,7 +96,7 @@ role Grammar::Parsefail {
     method typed_sorry(Exception $type, *%exnameds) {
         @!SORROWS.push(self!make-ex(self.MATCH, $type, %exnameds));
 
-        if +@!SORROWS >= $!SORRY_LIMIT { # we've got too much to be sorry for, bail
+        if +@!SORROWS >= ($!SORRY_LIMIT // 10) { # we've got too much to be sorry for, bail
             self!give-up-ghost();
         }
         self;
@@ -131,10 +131,10 @@ role Grammar::Parsefail {
 
     #| Use this at the end of your TOP rule to get any sorrows and worries out
     #| of the way
-    method express-concerns() {
+    method express_concerns() {
         if +@!SORROWS == 1 && !+@!WORRIES {
             @!SORROWS[0].throw;
-        } elsif @!SORROWS > 0 {
+        } elsif +@!SORROWS || +@!WORRIES {
             self!give-up-ghost();
         }
         self;
