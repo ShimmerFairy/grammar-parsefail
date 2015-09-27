@@ -4,7 +4,7 @@ use v6;
 use Test;
 use Grammar::Parsefail;
 
-plan 6;
+plan 7;
 
 #| the grammar we'll be using
 grammar TestingPF does Grammar::Parsefail {
@@ -35,6 +35,13 @@ grammar TestingPF does Grammar::Parsefail {
         BAZ <.worry("GASP!")>
         <.express_concerns>
     }
+
+    token limited_sorry {
+        { $¢.limit_sorrows(2) }
+        limits
+        <.sorry("A")>
+        <.sorry("B")>
+    }
 }
 
 #| A fake IO to capture error output
@@ -50,6 +57,8 @@ class FakeIO {
 }
 
 my $fio = FakeIO.new;
+
+## typed failures
 
 {
     temp $*ERR = $fio;
@@ -111,6 +120,8 @@ is $fio.result, qq:to/END_ERR/, "Worry thrown properly";
 
 $fio.CLEAR;
 
+## Untyped problems
+
 {
     temp $*ERR = $fio;
     TestingPF.parse("FOO", :rule<panic_string>);
@@ -121,7 +132,7 @@ $fio.CLEAR;
     }
 }
 
-is $fio.result, qq:to/END_ERR/, "Panic thrown properly";
+is $fio.result, qq:to/END_ERR/, "Untyped panic thrown properly";
     \e[41;1m===SORRY!===\e[0m Issue in <unspecified file>:1,2:
     (ad-hoc) OH NO!
     at <unspecified file>:1,2
@@ -140,7 +151,7 @@ $fio.CLEAR;
     }
 }
 
-is $fio.result, qq:to/END_ERR/, "Sorrow thrown properly";
+is $fio.result, qq:to/END_ERR/, "Untyped sorrow thrown properly";
     \e[41;1m===SORRY!===\e[0m Issue in <unspecified file>:1,2:
     (ad-hoc) EEK!
     at <unspecified file>:1,2
@@ -159,7 +170,7 @@ $fio.CLEAR;
     }
 }
 
-is $fio.result, qq:to/END_ERR/, "Worry thrown properly";
+is $fio.result, qq:to/END_ERR/, "Untyped worry thrown properly";
     Potential difficulties:
         (ad-hoc) GASP!
         at <unspecified file>:1,2
@@ -167,4 +178,31 @@ is $fio.result, qq:to/END_ERR/, "Worry thrown properly";
 
     The potential difficulties above may cause unexpected results, since they don't prevent the parser from completing.
     Fix or suppress the issues as needed to avoid any doubt in the results of parsing.
+    END_ERR
+
+$fio.CLEAR;
+
+## sorry limiting
+
+{
+    temp $*ERR = $fio;
+    TestingPF.parse("limits", :rule<limited_sorry>);
+    CATCH {
+        default {
+            note $_;
+        }
+    }
+}
+
+is $fio.result, qq:to/END_ERR/, "Limiting sorrows works";
+    \e[41;1m===SORRY!===\e[0m
+    Problems:
+        (ad-hoc) A
+        at <unspecified file>:1,5
+        ------>|\e[32mlimit\e[33m\c[EJECT SYMBOL]\e[31ms\e[0m
+        (ad-hoc) B
+        at <unspecified file>:1,5
+        ------>|\e[32mlimit\e[33m\c[EJECT SYMBOL]\e[31ms\e[0m
+
+    There were too many problems to continue parsing. Please fix some of them so that we can parse more of the source code.
     END_ERR

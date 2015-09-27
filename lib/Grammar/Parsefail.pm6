@@ -143,9 +143,14 @@ role Grammar::Parsefail {
     method !give-up-ghost(Exception $panic?) {
         my $ghost;
         with $panic {
-            $ghost = X::Grammar::Epitaph.new(:$panic, worries => @!WORRIES, sorrows => @!SORROWS);
+            $ghost = X::Grammar::Epitaph.new(:$panic,
+                                             worries     => @!WORRIES,
+                                             sorrows     => @!SORROWS,
+                                             sorry_limit => $!SORRY_LIMIT);
         } else {
-            $ghost = X::Grammar::Epitaph.new(worries => @!WORRIES, sorrows => @!SORROWS);
+            $ghost = X::Grammar::Epitaph.new(worries     => @!WORRIES,
+                                             sorrows     => @!SORROWS,
+                                             sorry_limit => ($!SORRY_LIMIT // 10));
         }
 
         if +@!SORROWS || $panic.defined {

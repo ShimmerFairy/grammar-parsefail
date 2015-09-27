@@ -13,6 +13,8 @@ class X::Grammar::Epitaph is Exception {
     has @.sorrows;
     has @.worries;
 
+    has $.sorry_limit;
+
     method gist(X::Grammar::Epitaph:D:) {
         my ($redbg, $reset) = !$*DISTRO.is-win ?? ("\e[41;1m", "\e[0m") !! ("", "");
 
@@ -48,7 +50,7 @@ class X::Grammar::Epitaph is Exception {
 
         with $!panic {
             $gist ~= "\nThe main issue stopped parsing immediately. Please fix it so that we can parse more of the source code."
-        } elsif +@!sorrows >= 10 { # XXX use real SORRY_LIMIT
+        } elsif +@!sorrows >= $!sorry_limit {
             $gist ~= "\nThere were too many problems to continue parsing. Please fix some of them so that we can parse more of the source code."
         } elsif +@!sorrows {
             $gist ~= "\nThe problems above prevented the parser from producing something useful (however it was able to parse everything). Fixing them will allow useful output from the parser.";
