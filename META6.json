@@ -7,5 +7,6 @@
     "provides"    : {
         "Grammar::Parsefail" : "lib/Grammar/Parsefail.pm6",
         "Grammar::Parsefail::Exceptions" : "lib/Grammar/Parsefail/Exceptions.pm6"
-    }
+    },
+    "production"  : 0, // save "production" for formal releases
 }

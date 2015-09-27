@@ -57,8 +57,8 @@ role Grammar::Parsefail {
         %opts<badpart>  = $fled-line.substr($linecol[1]);
 
         %opts<err-point> = ExPointer.new(file => $!FILENAME // "<unspecified file>",
-                                       line => $linecol[0],
-                                       col  => $linecol[1]);
+                                         line => $linecol[0],
+                                         col  => $linecol[1]);
 
         if %opts<HINT-MATCH>:exists {
             my $hint = %opts<HINT-MATCH>;
@@ -71,8 +71,8 @@ role Grammar::Parsefail {
             %opts<hint-afterpoint>  = $hint-line.substr(0, $hintlc[1]);
 
             %opts<hint-point> = ExPointer.new(file => $!FILENAME // "<unspecified file>",
-                                            line => $hintlc[0],
-                                            col  => $hintlc[1]);
+                                              line => $hintlc[0],
+                                              col  => $hintlc[1]);
 
             %opts<HINT-MATCH>:delete;
             %opts<hint-but-no-pointer> = 0;
