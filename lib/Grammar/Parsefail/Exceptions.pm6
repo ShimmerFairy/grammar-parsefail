@@ -112,6 +112,12 @@ class X::Grammar is Exception {
             $gist ~= $hint.indent(4);
         }
 
-        $gist;
+        $gist.chomp;
     }
+}
+
+class X::Grammar::AdHoc is X::Grammar {
+    has $.payload;
+
+    method message { "(ad-hoc) $!payload" }
 }

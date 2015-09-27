@@ -4,7 +4,7 @@ use v6;
 use Test;
 use Grammar::Parsefail::Exceptions;
 
-plan 9;
+plan 10;
 
 ## ExPointer
 
@@ -84,3 +84,19 @@ is $tombstone.gist, qq:to/END_GROUP/.chomp, "X::Grammar::Epitaph gist works";
     END_GROUP
 
 # XXX more Epitaph tests
+
+## X::Grammar::AdHoc
+
+$ex = X::Grammar::AdHoc.new(payload   => "A plain adhoc",
+                            err-point => $point,
+                            goodpart  => "foo",
+                            badpart   => "bar");
+
+is $ex.gist, qq:to/END_EXPECT/.chomp, "X::Grammar::AdHoc makes the right gist";
+    \e[41;1m===SORRY!===\e[0m Issue in $point.gist():
+    (ad-hoc) A plain adhoc
+    at $point.gist()
+    ------>|\e[32mfoo\e[33m\c[EJECT SYMBOL]\e[31mbar\e[0m
+    END_EXPECT
+
+# XXX more AdHoc tests

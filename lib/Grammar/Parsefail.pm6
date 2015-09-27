@@ -116,17 +116,17 @@ role Grammar::Parsefail {
 
     #| For worrying without constructing your own exception object
     method worry(Str $string) {
-        self.typed_worry(X::Grammar::AdHoc, message => $string);
+        self.typed_worry(X::Grammar::AdHoc, payload => $string);
     }
 
     #| For being sorry without making a specific exception object
     method sorry(Str $string) {
-        self.typed_sorry(X::Grammar::AdHoc, message => $string);
+        self.typed_sorry(X::Grammar::AdHoc, payload => $string);
     }
 
     #| For panicking without making a specific exception object
     method panic(Str $string) {
-        self.typed_panic(X::Grammar::AdHoc, message => $string);
+        self.typed_panic(X::Grammar::AdHoc, payload => $string);
     }
 
     #| Use this at the end of your TOP rule to get any sorrows and worries out
