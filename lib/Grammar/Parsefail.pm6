@@ -38,15 +38,18 @@ role Grammar::Parsefail {
         }
 
         # now to find the right line number
-        my $line-number = @!nl-list.first-index(* >= $at) + 1; # +1 for zero-index to line numbers
+        my $line-number = $at == $text.chars ?? +@!nl-list !! @!nl-list.first-index(* >= $at) + 1; # +1 for zero-index to line numbers
 
         # and now the column
         my $col-number = $line-number == 1 ?? $at !! @!nl-list[$line-number - 1] - $at - 1;
 
+        # hackish correction for EOF pointer
+        $col-number = $text.lines[*-1].chars if $col-number < 0;
+
         return ($line-number, $col-number);
     }
 
-    method !takeline(str $fromthis, int $lineno) { $fromthis.lines[$lineno - 1] }
+    method !takeline(Str $fromthis, Int $lineno) { $fromthis.lines[$lineno - 1] }
 
     method !make-ex($/, Exception $type, %opts is copy) {
         my $linecol = self!linecol($/.orig, $/.to);
