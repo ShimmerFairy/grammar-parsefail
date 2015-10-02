@@ -37,8 +37,8 @@ grammar TestingPF does Grammar::Parsefail {
     }
 
     token limited_sorry {
-        { $¢.limit_sorrows(2) }
         limits
+        { $¢.limit_sorrows(2) } # XXX putting at top breaks things; see RT#126249
         <.sorry("A")>
         <.sorry("B")>
     }
@@ -71,10 +71,10 @@ my $fio = FakeIO.new;
 }
 
 is $fio.result, qq:to/END_ERR/, "Panic thrown properly";
-    \e[41;1m===SORRY!===\e[0m Issue in <unspecified file>:1,2:
+    \e[41;1m===SORRY!===\e[0m Issue in <unspecified file>:1,3:
     Unspecified grammar error
-    at <unspecified file>:1,2
-    ------>|\e[32mfo\e[33m\c[EJECT SYMBOL]\e[31mo\e[0m
+    at <unspecified file>:1,3
+    ------>|\e[32mfoo\e[33m\c[EJECT SYMBOL]\e[31m\e[0m
     END_ERR
 
 $fio.CLEAR;
@@ -90,10 +90,10 @@ $fio.CLEAR;
 }
 
 is $fio.result, qq:to/END_ERR/, "Sorrow thrown properly";
-    \e[41;1m===SORRY!===\e[0m Issue in <unspecified file>:1,2:
+    \e[41;1m===SORRY!===\e[0m Issue in <unspecified file>:1,3:
     Unspecified grammar error
-    at <unspecified file>:1,2
-    ------>|\e[32mba\e[33m\c[EJECT SYMBOL]\e[31mr\e[0m
+    at <unspecified file>:1,3
+    ------>|\e[32mbar\e[33m\c[EJECT SYMBOL]\e[31m\e[0m
     END_ERR
 
 $fio.CLEAR;
@@ -111,8 +111,8 @@ $fio.CLEAR;
 is $fio.result, qq:to/END_ERR/, "Worry thrown properly";
     Potential difficulties:
         Unspecified grammar error
-        at <unspecified file>:1,2
-        ------>|\e[32mba\e[33m\c[EJECT SYMBOL]\e[31mz\e[0m
+        at <unspecified file>:1,3
+        ------>|\e[32mbaz\e[33m\c[EJECT SYMBOL]\e[31m\e[0m
 
     The potential difficulties above may cause unexpected results, since they don't prevent the parser from completing.
     Fix or suppress the issues as needed to avoid any doubt in the results of parsing.
@@ -133,10 +133,10 @@ $fio.CLEAR;
 }
 
 is $fio.result, qq:to/END_ERR/, "Untyped panic thrown properly";
-    \e[41;1m===SORRY!===\e[0m Issue in <unspecified file>:1,2:
+    \e[41;1m===SORRY!===\e[0m Issue in <unspecified file>:1,3:
     (ad-hoc) OH NO!
-    at <unspecified file>:1,2
-    ------>|\e[32mFO\e[33m\c[EJECT SYMBOL]\e[31mO\e[0m
+    at <unspecified file>:1,3
+    ------>|\e[32mFOO\e[33m\c[EJECT SYMBOL]\e[31m\e[0m
     END_ERR
 
 $fio.CLEAR;
@@ -152,10 +152,10 @@ $fio.CLEAR;
 }
 
 is $fio.result, qq:to/END_ERR/, "Untyped sorrow thrown properly";
-    \e[41;1m===SORRY!===\e[0m Issue in <unspecified file>:1,2:
+    \e[41;1m===SORRY!===\e[0m Issue in <unspecified file>:1,3:
     (ad-hoc) EEK!
-    at <unspecified file>:1,2
-    ------>|\e[32mBA\e[33m\c[EJECT SYMBOL]\e[31mR\e[0m
+    at <unspecified file>:1,3
+    ------>|\e[32mBAR\e[33m\c[EJECT SYMBOL]\e[31m\e[0m
     END_ERR
 
 $fio.CLEAR;
@@ -173,8 +173,8 @@ $fio.CLEAR;
 is $fio.result, qq:to/END_ERR/, "Untyped worry thrown properly";
     Potential difficulties:
         (ad-hoc) GASP!
-        at <unspecified file>:1,2
-        ------>|\e[32mBA\e[33m\c[EJECT SYMBOL]\e[31mZ\e[0m
+        at <unspecified file>:1,3
+        ------>|\e[32mBAZ\e[33m\c[EJECT SYMBOL]\e[31m\e[0m
 
     The potential difficulties above may cause unexpected results, since they don't prevent the parser from completing.
     Fix or suppress the issues as needed to avoid any doubt in the results of parsing.
@@ -198,11 +198,11 @@ is $fio.result, qq:to/END_ERR/, "Limiting sorrows works";
     \e[41;1m===SORRY!===\e[0m
     Problems:
         (ad-hoc) A
-        at <unspecified file>:1,5
-        ------>|\e[32mlimit\e[33m\c[EJECT SYMBOL]\e[31ms\e[0m
+        at <unspecified file>:1,6
+        ------>|\e[32mlimits\e[33m\c[EJECT SYMBOL]\e[31m\e[0m
         (ad-hoc) B
-        at <unspecified file>:1,5
-        ------>|\e[32mlimit\e[33m\c[EJECT SYMBOL]\e[31ms\e[0m
+        at <unspecified file>:1,6
+        ------>|\e[32mlimits\e[33m\c[EJECT SYMBOL]\e[31m\e[0m
 
     There were too many problems to continue parsing. Please fix some of them so that we can parse more of the source code.
     END_ERR

@@ -38,10 +38,10 @@ role Grammar::Parsefail {
         }
 
         # now to find the right line number
-        my $line-number = @!nl-list.last-index(* > $at) + 1; # +1 for zero-index to line numbers
+        my $line-number = @!nl-list.first-index(* >= $at) + 1; # +1 for zero-index to line numbers
 
         # and now the column
-        my $col-number = @!nl-list[$line-number - 1] - $at - 1;
+        my $col-number = $line-number == 1 ?? $at !! @!nl-list[$line-number - 1] - $at - 1;
 
         return ($line-number, $col-number);
     }
@@ -49,7 +49,7 @@ role Grammar::Parsefail {
     method !takeline(str $fromthis, int $lineno) { $fromthis.lines[$lineno - 1] }
 
     method !make-ex($/, Exception $type, %opts is copy) {
-        my $linecol = self!linecol($/.orig, $/.from);
+        my $linecol = self!linecol($/.orig, $/.to);
 
         my $fled-line = self!takeline($/.orig, $linecol[0]);
 
