@@ -4,7 +4,7 @@ use v6;
 use Test;
 use Grammar::Parsefail;
 
-plan 7;
+plan 8;
 
 #| the grammar we'll be using
 grammar TestingPF does Grammar::Parsefail {
@@ -41,6 +41,15 @@ grammar TestingPF does Grammar::Parsefail {
         { $¢.limit_sorrows(2) } # XXX putting at top breaks things; see RT#126249
         <.sorry("A")>
         <.sorry("B")>
+    }
+
+    token nesting_concerns {
+        <nested_concern>
+        <.express_concerns>
+    }
+
+    token nested_concern {
+        quux <.typed_sorry(X::Grammar)>
     }
 }
 
@@ -206,3 +215,26 @@ is $fio.result, qq:to/END_ERR/, "Limiting sorrows works";
 
     There were too many problems to continue parsing. Please fix some of them so that we can parse more of the source code.
     END_ERR
+
+$fio.CLEAR;
+
+## causing concern in a subrule
+
+{
+    temp $*ERR = $fio;
+    TestingPF.parse("quux", :rule<nesting_concerns>);
+    CATCH {
+        default {
+            note $_;
+        }
+    }
+}
+
+is $fio.result, qq:to/END_ERR/, "Concern in subrule works";
+    \e[41;1m===SORRY!===\e[0m Issue in <unspecified file>:1,4:
+    Unspecified grammar error
+    at <unspecified file>:1,4
+    ------>|\e[32mquux\e[33m\c[EJECT SYMBOL]\e[31m\e[0m
+    END_ERR
+
+$fio.CLEAR;
