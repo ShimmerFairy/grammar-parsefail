@@ -6,19 +6,44 @@ use v6;
 
 use Grammar::Parsefail::Exceptions;
 
-role Grammar::Parsefail {
+class Grammar::Parsefail is Grammar {
     has @!nl-list;
 
-    has @!WORRIES;
-    has @!SORROWS;
+#### Overriding parsing methods
 
-    has $!SORRY_LIMIT = 10;
-    has $!FILENAME;
+    method parse($target, :$filename = '<unspecified file>', *%opts) {
+        my @*SORROWS;
+        my @*WORRIES;
+        my $*SORRY_LIMIT = 10;
+        my $*FILENAME = $filename;
 
-    method set_filename(Str(Stringy:D) $fn) { $!FILENAME = $fn }
+        nextwith($target, |%opts);
+    }
+
+    method subparse($target, :$filename = '<unspecified file>', *%opts) {
+        my @*SORROWS;
+        my @*WORRIES;
+        my $*SORRY_LIMIT = 10;
+        my $*FILENAME = $filename;
+
+        nextwith($target, |%opts);
+    }
+
+    method parsefile(Str(Cool) $filename, *%opts) {
+        my @*SORROWS;
+        my @*WORRIES;
+        my $*SORRY_LIMIT = 10;
+        my $*FILENAME = $filename;
+
+        nextwith($filename, |%opts);
+    }
+
+#### Methods for handling errors.
+
+    method set_filename(Str(Stringy:D) $fn) { $*FILENAME = $fn }
 
     method limit_sorrows(UInt() $num) {
-        $!SORRY_LIMIT = $num;
+        $*SORRY_LIMIT = $num;
     }
 
     # like HLL::Compiler.lineof, but gives a column too
@@ -59,7 +84,7 @@ role Grammar::Parsefail {
         %opts<goodpart> = $fled-line.substr(0, $linecol[1]);
         %opts<badpart>  = $fled-line.substr($linecol[1]);
 
-        %opts<err-point> = ExPointer.new(file => $!FILENAME // "<unspecified file>",
+        %opts<err-point> = ExPointer.new(file => $*FILENAME // "<unspecified file>",
                                          line => $linecol[0],
                                          col  => $linecol[1]);
 
@@ -73,7 +98,7 @@ role Grammar::Parsefail {
             %opts<hint-beforepoint> = $hint-line.substr(0, $hintlc[1]);
             %opts<hint-afterpoint>  = $hint-line.substr(0, $hintlc[1]);
 
-            %opts<hint-point> = ExPointer.new(file => $!FILENAME // "<unspecified file>",
+            %opts<hint-point> = ExPointer.new(file => $*FILENAME // "<unspecified file>",
                                               line => $hintlc[0],
                                               col  => $hintlc[1]);
 
@@ -89,7 +114,7 @@ role Grammar::Parsefail {
     #| Use this for things that are possibly concerning, but don't cause
     #| problems for your ability to parse something
     method typed_worry(Exception $type, *%exnameds) {
-        @!WORRIES.push(self!make-ex(self.MATCH, $type, %exnameds));
+        @*WORRIES.push(self!make-ex(self.MATCH, $type, %exnameds));
         self;
     }
 
@@ -97,9 +122,9 @@ role Grammar::Parsefail {
     #| text you're parsing is now considered to have invalid syntax), but you
     #| could still theoretically parse more, to maybe find more issues.
     method typed_sorry(Exception $type, *%exnameds) {
-        @!SORROWS.push(self!make-ex(self.MATCH, $type, %exnameds));
+        @*SORROWS.push(self!make-ex(self.MATCH, $type, %exnameds));
 
-        if +@!SORROWS >= ($!SORRY_LIMIT // 10) { # we've got too much to be sorry for, bail
+        if +@*SORROWS >= ($*SORRY_LIMIT // 10) { # we've got too much to be sorry for, bail
             self!give-up-ghost();
         }
         self;
@@ -109,7 +134,7 @@ role Grammar::Parsefail {
     #| to parse beyond that.
     method typed_panic(Exception $type, *%exnameds) {
         my $ex = self!make-ex(self.MATCH, $type, %exnameds);
-        if +@!SORROWS || +@!WORRIES {
+        if +@*SORROWS || +@*WORRIES {
             self!give-up-ghost($ex);
         } else {
             $ex.throw;
@@ -135,9 +160,9 @@ role Grammar::Parsefail {
     #| Use this at the end of your TOP rule to get any sorrows and worries out
     #| of the way
     method express_concerns() {
-        if +@!SORROWS == 1 && !+@!WORRIES {
-            @!SORROWS[0].throw;
-        } elsif +@!SORROWS || +@!WORRIES {
+        if +@*SORROWS == 1 && !+@*WORRIES {
+            @*SORROWS[0].throw;
+        } elsif +@*SORROWS || +@*WORRIES {
             self!give-up-ghost();
         }
         self;
@@ -147,16 +172,16 @@ role Grammar::Parsefail {
         my $ghost;
         with $panic {
             $ghost = X::Grammar::Epitaph.new(:$panic,
-                                             worries     => @!WORRIES,
-                                             sorrows     => @!SORROWS,
-                                             sorry_limit => $!SORRY_LIMIT);
+                                             worries     => @*WORRIES,
+                                             sorrows     => @*SORROWS,
+                                             sorry_limit => $*SORRY_LIMIT);
         } else {
-            $ghost = X::Grammar::Epitaph.new(worries     => @!WORRIES,
-                                             sorrows     => @!SORROWS,
-                                             sorry_limit => ($!SORRY_LIMIT // 10));
+            $ghost = X::Grammar::Epitaph.new(worries     => @*WORRIES,
+                                             sorrows     => @*SORROWS,
+                                             sorry_limit => ($*SORRY_LIMIT // 10));
         }
 
-        if +@!SORROWS || $panic.defined {
+        if +@*SORROWS || $panic.defined {
             $ghost.throw;
         } else {
             note $ghost.gist;

@@ -7,7 +7,7 @@ use Grammar::Parsefail;
 plan 8;
 
 #| the grammar we'll be using
-grammar TestingPF does Grammar::Parsefail {
+grammar TestingPF is Grammar::Parsefail {
     token dont_panic {
         foo <.typed_panic(X::Grammar)>
     }
