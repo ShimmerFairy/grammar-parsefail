@@ -11,7 +11,7 @@ in the text being parsed, instead of the point in the program where you threw
 the error.
 
 =begin code :allow<B>
-    grammar ParenParser B<does Grammar::Parsefail> {
+    grammar ParenParser B<is Grammar::Parsefail> {
         token TOP {
             <expr>+
 
