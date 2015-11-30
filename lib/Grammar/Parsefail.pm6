@@ -63,7 +63,7 @@ class Grammar::Parsefail is Grammar {
         }
 
         # now to find the right line number
-        my $line-number = $at == $text.chars ?? +@!nl-list !! @!nl-list.first-index(* >= $at) + 1; # +1 for zero-index to line numbers
+        my $line-number = $at == $text.chars ?? +@!nl-list !! @!nl-list.first(* >= $at, :k) + 1; # +1 for zero-index to line numbers
 
         # and now the column
         my $col-number = $line-number == 1 ?? $at !! @!nl-list[$line-number - 1] - $at - 1;
