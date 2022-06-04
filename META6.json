@@ -3,7 +3,7 @@
     "perl"        : "6.c",
     "name"        : "Grammar::Parsefail",
     "api"         : "0",
-    "version"     : "v0.1",
+    "version"     : "0.2",
     "description" : "Syntax error reporting for grammars",
     "authors"     : [ "Faye" ],
     "provides"    : {
@@ -11,6 +11,4 @@
         "Grammar::Parsefail::Exceptions" : "lib/Grammar/Parsefail/Exceptions.pm6"
     },
     "production"  : 0,
-    "apparently JSON doesn't allow comments which is pretty dumb. Remind me why we're using *javascript* for *Perl* stuff, again?" :
-    "only use 'production' for formal releases"
 }

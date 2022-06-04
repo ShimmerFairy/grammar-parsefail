@@ -82,18 +82,21 @@ class X::Grammar is Exception {
     has $.hint-message;
     has $.hint-but-no-pointer;
     has $.hint-beforepoint;
+    has $.hint-atpoint;
     has $.hint-afterpoint;
+    has $.hint-multiline;
 
     has ExPointer $.hint-point;
 
     method message { "Unspecified grammar error" }
 
     method gist(X::Grammar:D: :$singular = True) {
-        my ($redbg, $red, $green, $yellow, $reset, $eject, $hintat) = !$*DISTRO.is-win
+        my ($redbg, $red, $green, $yellow, $cyan, $boldwhite, $reset, $eject, $hintat, $hintend) =
+           !$*DISTRO.is-win
            ??
-           ("\e[41;1m", "\e[31m", "\e[32m", "\e[33m", "\e[0m", "\c[EJECT SYMBOL]", "▶")
+           ("\e[41;1m", "\e[31m", "\e[32m", "\e[33m", "\e[36m", "\e[0;1m", "\e[0m", "\c[EJECT SYMBOL]", "►", "◄")
            !!
-           ("", "", "", "", "", "<HERE>", "<THERE>");
+           ("", "", "", "", "", "<HERE>", "<THERE>", "");
 
         my $gist = $singular ?? "$redbg===SORRY!===$reset Issue in $!err-point.gist():\n" !! "";
         $gist ~= $.message ~ "\n";
@@ -107,9 +110,12 @@ class X::Grammar is Exception {
             $hint ~= "\n\n$.hint-message\n";
             unless $.hint-but-no-pointer {
                 $hint ~= "at $!hint-point.gist()\n";
-                $hint ~= "------>|$green$.hint-beforepoint";
+                $hint ~= "------>|$cyan$.hint-beforepoint";
                 $hint ~= "$yellow$hintat";
-                $hint ~= "{$green}{$.hint-afterpoint.chomp}$reset";
+                $hint ~= "{$boldwhite}{$.hint-atpoint}";
+                $hint ~= "$reset$yellow$hintend" unless $.hint-multiline;
+                $hint ~= "{$cyan}{$.hint-afterpoint.chomp}$reset";
+                $hint ~= "(continues on next line)" if $.hint-multiline;
             }
             $gist ~= $hint.indent(4);
         }

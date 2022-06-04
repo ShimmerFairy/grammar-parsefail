@@ -1,8 +1,8 @@
 # GrammarError.pm6 --- role for handling errors in grammar parsing
 
-unit module Grammar::Parsefail;
-
 use v6;
+
+unit module Grammar::Parsefail;
 
 use Grammar::Parsefail::Exceptions;
 
@@ -54,7 +54,6 @@ class Grammar::Parsefail is Grammar {
                 @!nl-list.push($_.chars);
                 @!nl-list[*-1]++ if +@!nl-list - 1; # count newlines on the next line (so skip for first line)
             }
-
             # we want cumulative position numbers in the list, so triangle
             # reduce it is! The list now contains the number of characters by
             # the end of that line (so a first line with 2 chars will have the
@@ -63,15 +62,12 @@ class Grammar::Parsefail is Grammar {
         }
 
         # now to find the right line number
-        my $line-number = $at == $text.chars ?? +@!nl-list !! @!nl-list.first(* >= $at, :k) + 1; # +1 for zero-index to line numbers
+        my $line-number = $at == $text.chars ?? (+@!nl-list - 1) !! @!nl-list.first(* >= $at, :k);
 
         # and now the column
-        my $col-number = $line-number == 1 ?? $at !! @!nl-list[$line-number - 1] - $at - 1;
+        my $col-number = $line-number == 0 ?? $at !! $at - @!nl-list[$line-number - 1] - 1;
 
-        # hackish correction for EOF and other empty lines
-        $col-number = $text.lines[$line-number - 1].chars if $col-number < 0;
-
-        return ($line-number, $col-number);
+        return ($line-number + 1, $col-number);
     }
 
     method !takeline(Str $fromthis, Int $lineno) { $fromthis.lines[$lineno - 1] }
@@ -93,16 +89,24 @@ class Grammar::Parsefail is Grammar {
         if %opts<HINT-MATCH>:exists {
             my $hint = %opts<HINT-MATCH>;
 
-            my $hintlc = self!linecol($hint.orig, $hint.from);
+            my $hintlc-start = self!linecol($hint.orig, $hint.from);
+            my $hintlc-end = self!linecol($hint.orig, $hint.pos);
 
-            my $hint-line = self!takeline($hint.orig, $hintlc[0]);
+            my $hint-line = self!takeline($hint.orig, $hintlc-start[0]);
 
-            %opts<hint-beforepoint> = $hint-line.substr(0, $hintlc[1]);
-            %opts<hint-afterpoint>  = $hint-line.substr(0, $hintlc[1]);
+            my $multiline = $hintlc-start[0] != $hintlc-end[0];
+
+            my $matchend = $multiline ?? $hint-line.chars !! $hintlc-end[1];
+
+            %opts<hint-beforepoint> = $hint-line.substr(0, $hintlc-start[1]);
+            %opts<hint-atpoint>     = $hint-line.substr($hintlc-start[1], ($matchend - $hintlc-start[1]));
+            %opts<hint-afterpoint>  = $hint-line.substr($matchend);
 
             %opts<hint-point> = ExPointer.new(file => $*FILENAME // "<unspecified file>",
-                                              line => $hintlc[0],
-                                              col  => $hintlc[1]);
+                                              line => $hintlc-start[0],
+                                              col  => $hintlc-start[1]);
+
+            %opts<hint-multiline> = $multiline;
 
             %opts<HINT-MATCH>:delete;
             %opts<hint-but-no-pointer> = 0;
